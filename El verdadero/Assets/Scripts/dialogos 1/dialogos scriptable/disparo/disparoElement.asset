@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b5551006314661446abe489ea3f96900, type: 3}
+  m_Name: disparoElement
+  m_EditorClassIdentifier: 
+  characterName: 
+  sentence: 'Usa el verde y dispara a los Cristales!
+
+'
+  audioClip: {fileID: 0}

@@ -9,7 +9,7 @@ public class MenuMusicController : MonoBehaviour
 
     private bool isMenuMusicPlaying = false;  // Controla si la música del menú se está reproduciendo
     private string sceneMenu = "MENU INICIAL";   // Nombre exacto de la escena de menú inicial
-    private string sceneGame = "Game";  // Nombre exacto de la escena del juego
+    [SerializeField] string sceneGame;  // Nombre exacto de la escena del juego
 
     void Start()
     {

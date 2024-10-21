@@ -27,7 +27,7 @@ public class MENU : MonoBehaviour
             menuCanvas.SetActive(false);
         }
 
-        // Cargar la escena "Introduccion" directamente
+        // Cargar la escena "Game" directamente
         SceneManager.LoadScene("Introduccion");
     }
 
