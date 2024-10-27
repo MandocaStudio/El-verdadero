@@ -23,12 +23,12 @@ public class pasos : MonoBehaviour
         Vector3 remappedMovement = new Vector3(player.movement.z, 0, -player.movement.x);
 
         // Solo empezar la corrutina si no está ya reproduciendo un sonido
-        if (other.collider.CompareTag("floorTile") && !isPlaying && remappedMovement != Vector3.zero)
+        if (other.collider.CompareTag("floorTile") && !isPlaying && remappedMovement != Vector3.zero && player.canMove == true)
         {
             StartCoroutinePasos(pasosPiedra());
         }
 
-        if (other.collider.CompareTag("floorGrass") && !isPlaying && remappedMovement != Vector3.zero)
+        if (other.collider.CompareTag("floorGrass") && !isPlaying && remappedMovement != Vector3.zero && player.canMove == true)
         {
             StartCoroutinePasos(pasosPasto());
         }

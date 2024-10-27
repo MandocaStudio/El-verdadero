@@ -27,9 +27,13 @@ public class ShadowCaster : MonoBehaviour
         Ray ray = new Ray(transform.position, Vector3.down);
         RaycastHit hit;
 
+        // Define la capa a ignorar
+        int layerMask = LayerMask.GetMask("ignoreRaycast");
         // Si el raycast golpea cualquier objeto (sin depender de capas específicas)
-        if (Physics.Raycast(ray, out hit, Mathf.Infinity))
+        if (Physics.Raycast(ray, out hit, Mathf.Infinity, ~layerMask))
         {
+
+
             // Mueve la "sombra" a la posición donde golpea el raycast
             shadowInstance.transform.position = hit.point;
 

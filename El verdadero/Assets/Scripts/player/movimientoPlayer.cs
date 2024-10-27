@@ -70,14 +70,11 @@ public class movimientoPlayer : MonoBehaviour
 
     public AudioClip chil;
 
+    public pasos PlayerPasos;
+
     [Header("Hud")]
 
     public GameObject hud;
-
-
-
-
-
 
     void Update()
     {

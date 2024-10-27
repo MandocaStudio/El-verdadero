@@ -3,44 +3,40 @@ using UnityEngine;
 public class ColliderInactivateWithDash : MonoBehaviour
 {
     public Collider colliderObject;
-    private movimientoPlayer player;
+    [SerializeField] private movimientoPlayer player;
 
-    private void OnTriggerEnter(Collider other)
+    [SerializeField] private Transform playerTransform;
+
+    public float activationDistance;
+
+    private void Update()
     {
-        if (other.CompareTag("Player"))
+        if (player == null && Vector3.Distance(transform.position, GameObject.FindWithTag("Player").transform.position) <= activationDistance)
         {
-            player = other.GetComponent<movimientoPlayer>();
-
-            if (player != null && player.dash.isDashing)
-            {
-                colliderObject.enabled = false;
-            }
+            playerTransform = GameObject.FindWithTag("Player").transform;
+            player = GameObject.FindWithTag("Player").GetComponent<movimientoPlayer>();
         }
-    }
 
-    private void OnTriggerStay(Collider other)
-    {
-        if (other.CompareTag("Player"))
+        else if (player != null && Vector3.Distance(transform.position, GameObject.FindWithTag("Player").transform.position) > activationDistance)
         {
-            player = other.GetComponent<movimientoPlayer>();
-
-            if (player != null && player.dash.isDashing)
-            {
-                colliderObject.enabled = false;
-            }
-            else if (player != null && !player.dash.isDashing)
-            {
-                colliderObject.enabled = true;
-            }
-        }
-    }
-
-    private void OnTriggerExit(Collider other)
-    {
-        if (other.CompareTag("Player") && player != null)
-        {
-            colliderObject.enabled = true;
+            playerTransform = null;
             player = null;
         }
+
+        if (player != null && Vector3.Distance(transform.position, playerTransform.transform.position) <= activationDistance)
+        {
+            if (player.dash.isDashing == true)
+            {
+                colliderObject.enabled = false;
+
+            }
+            else
+            {
+                colliderObject.enabled = true;
+
+            }
+        }
     }
+
+
 }
