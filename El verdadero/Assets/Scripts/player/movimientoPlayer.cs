@@ -79,11 +79,6 @@ public class movimientoPlayer : MonoBehaviour
     void Update()
     {
 
-
-
-
-
-
         x = Input.GetAxis("Horizontal");
 
         if (isSliding == false)
@@ -119,22 +114,9 @@ public class movimientoPlayer : MonoBehaviour
             }
         }
 
-        //incremento de fuerza al caer
-
-        if (rb.linearVelocity.y < 0)
-        {
-
-            rb.linearVelocity += Vector3.up * Physics.gravity.y * (jump.fallMultiplier - 1) * Time.deltaTime;
-        }
-
-        else if (rb.linearVelocity.y > 0)
-        {
-
-            rb.linearVelocity += Vector3.up * Physics.gravity.y * (jump.lowJumpMultiplier - 1) * Time.deltaTime;
-        }
 
 
-        jump.jump();
+
 
         // if (menuRadial.colorActivated == 1)
         // {
@@ -168,7 +150,10 @@ public class movimientoPlayer : MonoBehaviour
 
     }
 
+    private void FixedUpdate()
+    {
 
+    }
     public void playerMovement()
     {
 
@@ -200,18 +185,12 @@ public class movimientoPlayer : MonoBehaviour
             {
                 speed = 8;
 
-                jump.jumpCount = 0;
                 isGrounded = true;
-                jump.doubleJump = true;
-                jump.canGlide = false;
+
+                jump.canJump = true;
                 culatazo.canFall = false;
                 jump.isJumping = false;
-
                 irisAnimation.Stop("MidJump");
-
-
-
-
                 irisAnimation.Play("IdleBrush");
             }
         }
@@ -221,13 +200,22 @@ public class movimientoPlayer : MonoBehaviour
     {
         if (other.gameObject.tag.Contains("floor"))
         {
+
             groundContactCount--;
             if (groundContactCount == 0)
             {
                 isGrounded = false;
+                jump.canJump = false;
                 culatazo.canFall = true;
             }
         }
+    }
+
+    IEnumerator canJumpCooldown()
+    {
+        Debug.Log("entro");
+        yield return new WaitForSeconds(0.2f);
+        jump.canJump = true;
     }
 
     private void OnCollisionStay(Collision other)
@@ -235,6 +223,8 @@ public class movimientoPlayer : MonoBehaviour
         if (other.gameObject.tag.Contains("floor"))
         {
             isGrounded = true;
+            jump.canJump = true;
+
             culatazo.canFall = false;
         }
     }
