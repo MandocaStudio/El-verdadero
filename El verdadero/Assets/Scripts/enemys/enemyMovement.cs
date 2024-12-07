@@ -1,151 +1,144 @@
 using System.Collections;
-using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.AI;
 
-public class enemyMovement : MonoBehaviour
+public class EnemyMovement : MonoBehaviour
 {
-    public EnemyStats enemy;
-    public detector rango;
-    public playerDetector playerDetector;
+    public NavMeshAgent agent;
+    public float detectionRadius = 10f;
+    public float attackDistance = 2f;
+    public float retreatDistance = 5f;
+    public float idleTimeAfterRetreat = 2f; // Tiempo estático tras retirarse
 
-    public float rotationSpeed = 5f;
-    public float distanceToRetreat = 5f; // Distancia prudente para retroceder
-
-    private bool isRetreating = false;
-    private float distanceToPlayer;
+    [SerializeField] float Damage;
+    public Transform player;
+    public Animator animator;
+    private Vector3 patrolTarget;
+    [SerializeField] private bool isRetreating = false;
 
     private void Start()
     {
-        // Inicializar referencias al jugador si ya está presente en la escena
-        GameObject player = GameObject.FindWithTag("Player");
-        if (player != null)
-        {
-            playerDetector.playerTransform = player.GetComponent<Transform>();
-            playerDetector.playerMovement = player.GetComponent<movimientoPlayer>();
-        }
+        animator = GetComponent<Animator>();
+        SetNewPatrolTarget();
     }
 
     private void Update()
     {
-        // Verifica si playerTransform y playerMovement no son nulos antes de ejecutar la lógica
-        if (playerDetector.playerTransform != null && playerDetector.playerMovement != null)
+        if (isRetreating) return; // Evitar ejecutar lógica si está en el proceso de retirada
+
+        if (player == null) // Solo busca al jugador si no hay referencia guardada
         {
-
-
-
-            if (!enemy.isAttacking)  // Solo ejecutar Comportamiento si no está atacando
+            GameObject playerObject = GameObject.FindWithTag("Player");
+            if (playerObject != null && Vector3.Distance(transform.position, playerObject.transform.position) <= detectionRadius)
             {
-                Comportamiento();
+                player = playerObject.transform; // Asigna al jugador solo si está en el rango
             }
         }
-        else if (playerDetector.playerTransform == null && playerDetector.playerMovement == null)
+        else if (Vector3.Distance(transform.position, player.position) > detectionRadius)
         {
-            Patrullar();
+            player = null; // Limpia la referencia si el jugador está fuera del rango
+        }
+
+        if (player != null)
+        {
+            HandlePlayerInteraction();
+        }
+        else
+        {
+            Patrol();
         }
     }
 
-    public void Comportamiento()
+    private void Patrol()
     {
-        // Asegúrate de que playerTransform no sea nulo antes de calcular la distancia
-        if (playerDetector.playerTransform != null)
+        if (!agent.hasPath || agent.remainingDistance < 0.5f)
         {
-            distanceToPlayer = Vector3.Distance(transform.position, playerDetector.playerTransform.position);
+            SetNewPatrolTarget();
+            agent.SetDestination(patrolTarget);
+            animator.SetBool("walk", true);
+        }
+    }
 
-            if (distanceToPlayer > enemy.RadioVision)
+    private void SetNewPatrolTarget()
+    {
+        float randomX = transform.position.x + Random.Range(-10f, 10f);
+        float randomZ = transform.position.z + Random.Range(-10f, 10f);
+        patrolTarget = new Vector3(randomX, transform.position.y, randomZ);
+    }
+
+    private void HandlePlayerInteraction()
+    {
+        float distanceToPlayer = Vector3.Distance(transform.position, player.position);
+
+        if (distanceToPlayer <= attackDistance)
+        {
+            // Calcular la dirección hacia el jugador
+            Vector3 directionToPlayer = (player.position - transform.position).normalized;
+
+            // Calcular el ángulo entre el frente del enemigo y la dirección hacia el jugador
+            float angleToPlayer = Vector3.Angle(transform.forward, directionToPlayer);
+
+            // Solo atacar si el jugador está frente al enemigo (por ejemplo, dentro de un ángulo de 45 grados)
+            if (angleToPlayer <= 10f)
             {
-                Patrullar();
+                agent.ResetPath(); // Detenerse para atacar
+                animator.SetBool("attack", true);
+
+                // Retirarse después de atacar
+                Vector3 retreatDirection = (transform.position - player.position).normalized;
+                Vector3 retreatTarget = transform.position + retreatDirection * retreatDistance;
+
+                StartCoroutine(RetreatAfterAttack(retreatTarget));
             }
             else
             {
-                Perseguir(distanceToPlayer);
+                animator.SetBool("attack", false);
             }
         }
         else
         {
-            // Si no hay jugador detectado, patrullar
-            Patrullar();
-        }
-    }
-
-    private void Patrullar()
-    {
-        enemy.Agente.enabled = true;
-
-        enemy.cronometro += Time.deltaTime;
-        if (enemy.cronometro >= 4)
-        {
-            enemy.rutina = UnityEngine.Random.Range(0, 2);
-            enemy.cronometro = 0;
-        }
-
-        switch (enemy.rutina)
-        {
-            case 0:
-                enemy.animator.SetBool("walk", false);
-                break;
-            case 1:
-                enemy.grado = UnityEngine.Random.Range(0, 360);
-                enemy.angle = quaternion.Euler(0, enemy.grado, 0);
-                enemy.rutina++;
-                break;
-            case 2:
-                enemy.transform.rotation = Quaternion.RotateTowards(enemy.transform.rotation, enemy.angle, 0.5f);
-                enemy.transform.Translate(Vector3.forward * enemy.speed * Time.deltaTime);
-                enemy.animator.SetBool("walk", true);
-                break;
-        }
-    }
-
-    private void Perseguir(float distanceToPlayer)
-    {
-        enemy.cronometro = 4;
-        if (playerDetector.playerTransform != null)
-        {
-
-            enemy.Agente.enabled = true;
-
-            Vector3 lookPos = playerDetector.playerTransform.position - transform.position;
-            lookPos.y = 0;
-            Quaternion rotation = Quaternion.LookRotation(lookPos);
-
-            enemy.Agente.SetDestination(playerDetector.playerTransform.position);
-
-            if (distanceToPlayer > 1 && !enemy.isAttacking)
-            {
-                enemy.animator.SetBool("walk", true);
-            }
-            else if (!enemy.isAttacking)
-            {
-                enemy.transform.rotation = Quaternion.RotateTowards(enemy.transform.rotation, rotation, rotationSpeed * Time.deltaTime);
-                enemy.animator.SetBool("walk", false);
-            }
-        }
-        else
-        {
-            Patrullar();  // Si no hay jugador detectado, el enemigo patrulla
+            animator.SetBool("attack", false);
+            agent.SetDestination(player.position);
+            animator.SetBool("walk", true);
         }
     }
 
 
 
-    public void FinalAttack()
-    {
-        if (playerDetector.playerTransform != null)
-        {
-            float distanceToPlayer = Vector3.Distance(transform.position, playerDetector.playerTransform.position);
 
-            if (distanceToPlayer > enemy.distanciaAtaque + 0.2f)
-            {
-                enemy.animator.SetBool("attack", false);
-            }
+    private IEnumerator RetreatAfterAttack(Vector3 retreatTarget)
+    {
+        yield return new WaitForSeconds(0.5f);
+        isRetreating = true;
+        animator.SetBool("attack", false);
+
+        // Caminar hacia la dirección contraria al jugador
+        agent.SetDestination(retreatTarget);
+        animator.SetBool("walk", true);
+
+        // Esperar hasta que llegue al punto de retirada
+        while (agent.remainingDistance > 0.5f)
+        {
+            yield return null;
         }
 
-        enemy.isAttacking = false;
-        enemy.stuneado = false;
-        rango.GetComponent<CapsuleCollider>().enabled = true;
+        // Permanecer estático por unos segundos
+        animator.SetBool("walk", false);
+        yield return new WaitForSeconds(idleTimeAfterRetreat);
 
-        enemy.Agente.enabled = true;
-        isRetreating = false; // Termina el estado de retroceso
+        isRetreating = false; // Permitir volver a atacar o patrullar
+    }
+
+    // Método para dibujar el radio de detección en la vista de escena
+    private void OnDrawGizmos()
+    {
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(transform.position, detectionRadius);
+
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawWireSphere(transform.position, attackDistance);
+
+        Gizmos.color = Color.green;
+        Gizmos.DrawWireSphere(transform.position, retreatDistance);
     }
 }

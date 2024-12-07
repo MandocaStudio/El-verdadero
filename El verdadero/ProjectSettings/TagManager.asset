@@ -16,6 +16,7 @@ TagManager:
   - pincel
   - hillz
   - hillx
+  - attackEnemyContainer
   layers:
   - Default
   - TransparentFX

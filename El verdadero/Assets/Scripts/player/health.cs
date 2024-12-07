@@ -68,14 +68,14 @@ public class health : MonoBehaviour
         }
     }
 
-    private void OnTriggerEnter(Collider other)
-    {
-        if (other.CompareTag("enemyWeapon"))
-        {
-            takeDamage(1);
+    // private void OnTriggerEnter(Collider other)
+    // {
+    //     if (other.CompareTag("enemyWeapon"))
+    //     {
+    //         takeDamage(1);
 
-        }
-    }
+    //     }
+    // }
 
     IEnumerator damageColdown()
     {
